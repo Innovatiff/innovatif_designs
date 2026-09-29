@@ -14,7 +14,7 @@ export function Wordmark({ to = '/', tone = 'dark', label }: Props) {
   const content = (
     <>
       <span className="wordmark-mark" aria-hidden="true">
-        <LogoMark size={15} />
+        <LogoMark size={18} />
       </span>
       <span className="wordmark-text">
         {label ? (

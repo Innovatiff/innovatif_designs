@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react'
 
-/** The Innovatif "V" mark: symmetric outer edges, a heavier left arm and a lighter right arm. */
-export const LOGO_PATH = 'M10 22 L16 22 L51.5 62 L87 22 L90 22 L50 80 Z'
+/** The Innovatif "V" mark: two tapered wedges with sharp tips meeting at a point. Traced from the brand logo. */
+export const LOGO_PATH = 'M8 20 L50 81 L92 20 L50 62 Z'
 
 export function LogoMark({ size = 20, ...props }: SVGProps<SVGSVGElement> & { size?: number }) {
   return (
