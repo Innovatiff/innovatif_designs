@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { LogoMark } from './Logo'
 
 interface Props {
   /** Where the wordmark links to. `null` renders plain text (used inside pages). */
@@ -12,7 +13,9 @@ export function Wordmark({ to = '/', tone = 'dark', label }: Props) {
   const className = `wordmark wordmark-${tone}`
   const content = (
     <>
-      <span className="wordmark-mark" aria-hidden="true" />
+      <span className="wordmark-mark" aria-hidden="true">
+        <LogoMark size={15} />
+      </span>
       <span className="wordmark-text">
         {label ? (
           label

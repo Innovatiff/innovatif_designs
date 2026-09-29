@@ -322,32 +322,15 @@ s {
   color: var(--ink-2);
 }
 .wordmark-mark {
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 26px;
   height: 26px;
   border-radius: 7px;
   background: var(--black);
+  color: #fff;
   flex: none;
-}
-.wordmark-mark::before {
-  content: '';
-  position: absolute;
-  left: 11px;
-  top: 11px;
-  width: 4px;
-  height: 9px;
-  border-radius: 2px;
-  background: #fff;
-}
-.wordmark-mark::after {
-  content: '';
-  position: absolute;
-  left: 10.5px;
-  top: 5px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--blue);
 }
 .wordmark-light {
   color: #fff;
@@ -357,9 +340,7 @@ s {
 }
 .wordmark-light .wordmark-mark {
   background: #fff;
-}
-.wordmark-light .wordmark-mark::before {
-  background: var(--black);
+  color: var(--black);
 }
 
 .topbar {
