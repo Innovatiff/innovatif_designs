@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// Innovatif Designs — Firestore security rules.
+//
+// Publish these from the Firebase console (Firestore Database → Rules → paste → Publish)
+// or with the Firebase CLI: `firebase deploy --only firestore:rules`.
+//
+// Anyone who has a page link can open that page (so you can send it to clients).
+// Only a signed-in user (you) can see the list of pages, create, edit or delete them.
+// Sign-ups are not possible from the app; disable them in
+// Authentication → Settings → User actions as well, so only the users you create can sign in.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /pages/{pageId} {
+      allow get: if true;
+      allow list: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.title is string
+        && request.resource.data.services is list;
+      allow delete: if signedIn();
+    }
+
+    match /images/{imageId} {
+      allow get: if true;
+      allow list: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.dataUrl is string
+        && request.resource.data.dataUrl.size() <= 950000;
+      allow update: if false;
+      allow delete: if signedIn();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
