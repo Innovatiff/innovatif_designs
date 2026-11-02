@@ -1,70 +1,60 @@
-import type { Page, PageInput } from '../types'
-import type { Backend } from './db'
-import { newId, normalizeInput, normalizePage } from './normalize'
+import type { Backend, CollectionName } from './db'
+import { newId } from './normalize'
 
-const PAGES_KEY = 'innovatif:pages'
 const IMAGE_PREFIX = 'innovatif:image:'
+const keyFor = (name: CollectionName) => `innovatif:${name}`
 
-function readPages(): Page[] {
+type StoredRecord = Record<string, unknown> & { id: string }
+
+function read(name: CollectionName): StoredRecord[] {
   try {
-    const raw = localStorage.getItem(PAGES_KEY)
-    const parsed = raw ? (JSON.parse(raw) as unknown[]) : []
+    const raw = localStorage.getItem(keyFor(name))
+    const parsed = raw ? (JSON.parse(raw) as unknown) : []
     return Array.isArray(parsed)
-      ? parsed.map((p) => {
-          const rec = p as Record<string, unknown>
-          return normalizePage(rec, {
-            id: String(rec.id ?? newId()),
-            createdAt: String(rec.createdAt ?? ''),
-            updatedAt: String(rec.updatedAt ?? ''),
-          })
-        })
+      ? parsed.filter((r): r is StoredRecord => Boolean(r) && typeof r === 'object' && typeof (r as StoredRecord).id === 'string')
       : []
   } catch {
     return []
   }
 }
 
-function writePages(pages: Page[]) {
+function write(name: CollectionName, records: StoredRecord[]) {
   try {
-    localStorage.setItem(PAGES_KEY, JSON.stringify(pages))
+    localStorage.setItem(keyFor(name), JSON.stringify(records))
   } catch {
     throw new Error('This browser has run out of local storage space. Remove some images or pages.')
   }
 }
 
-const nowISO = () => new Date().toISOString()
-
 export const localBackend: Backend = {
   name: 'local',
 
-  async listPages() {
-    return readPages().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  async list(name) {
+    return read(name).map((r) => ({ id: r.id, data: r }))
   },
 
-  async getPage(id) {
-    return readPages().find((p) => p.id === id) ?? null
+  async get(name, id) {
+    const record = read(name).find((r) => r.id === id)
+    return record ? { id, data: record } : null
   },
 
-  async createPage(input: PageInput) {
-    const now = nowISO()
-    const page: Page = { ...normalizeInput(input), id: newId(), createdAt: now, updatedAt: now }
-    writePages([...readPages(), page])
-    return page
+  async create(name, data) {
+    const id = newId()
+    write(name, [...read(name), { ...data, id }])
+    return id
   },
 
-  async updatePage(id, input, createdAt) {
-    const now = nowISO()
-    const page: Page = { ...normalizeInput(input), id, createdAt: createdAt || now, updatedAt: now }
-    const pages = readPages()
-    const index = pages.findIndex((p) => p.id === id)
-    if (index === -1) pages.push(page)
-    else pages[index] = page
-    writePages(pages)
-    return page
+  async set(name, id, data) {
+    const records = read(name)
+    const index = records.findIndex((r) => r.id === id)
+    const record = { ...data, id }
+    if (index === -1) records.push(record)
+    else records[index] = record
+    write(name, records)
   },
 
-  async deletePage(id) {
-    writePages(readPages().filter((p) => p.id !== id))
+  async remove(name, id) {
+    write(name, read(name).filter((r) => r.id !== id))
   },
 
   async uploadImage(dataUrl) {

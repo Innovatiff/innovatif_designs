@@ -1,5 +1,7 @@
 # Innovatif Designs — Netlify configuration.
 # The app is a static single-page app; data lives in Firestore (see README.md).
+# Stripe payments run in netlify/functions and need STRIPE_SECRET_KEY set in
+# Site configuration → Environment variables.
 
 [build]
   command = "npm run build"
@@ -7,6 +9,10 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 [[headers]]
   for = "/assets/*"

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { IS_LOCAL } from './db'
+import { IS_LOCAL } from './mode'
 
 export interface AuthUser {
   email: string | null
@@ -11,6 +11,8 @@ export interface AuthBackend {
   subscribe(callback: (user: AuthUser | null) => void): () => void
   signIn(email: string, password: string): Promise<void>
   signOut(): Promise<void>
+  /** Firebase ID token for calls to the owner-only payment function. */
+  getIdToken(): Promise<string | null>
 }
 
 const localAuth: AuthBackend = {
@@ -21,11 +23,18 @@ const localAuth: AuthBackend = {
   },
   async signIn() {},
   async signOut() {},
+  async getIdToken() {
+    return null
+  },
 }
 
 const backend: Promise<AuthBackend> = IS_LOCAL
   ? Promise.resolve(localAuth)
   : import('./auth.firebase').then((m) => m.firebaseAuth)
+
+export function getIdToken(): Promise<string | null> {
+  return backend.then((b) => b.getIdToken()).catch(() => null)
+}
 
 interface AuthContextValue {
   loading: boolean

@@ -40,4 +40,5 @@ export const firebaseAuth: AuthBackend = {
     }
   },
   signOut: () => signOut(auth),
+  getIdToken: async () => (auth.currentUser ? auth.currentUser.getIdToken() : null),
 }

@@ -7,14 +7,9 @@ import { isServiceEmpty, makeReference, newId, normalizeInput, toMoney } from '.
 import { ArtPicker } from '../components/ArtPicker'
 import { Proposal } from '../components/Proposal'
 import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, PlusIcon, TrashIcon } from '../components/icons'
+import { CURRENCIES } from '../lib/currencies'
+import { loadDefaults, saveDefaults } from '../lib/defaults'
 import { Splash } from '../components/Splash'
-
-const DEFAULTS_KEY = 'innovatif:defaults'
-const CURRENCIES = [
-  'USD', 'EUR', 'GBP', 'MAD', 'AED', 'SAR', 'QAR', 'KWD', 'CAD', 'AUD', 'NZD', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK',
-  'TRY', 'INR', 'PKR', 'NGN', 'KES', 'GHS', 'ZAR', 'EGP', 'TND', 'DZD', 'BRL', 'MXN', 'ARS', 'COP', 'JPY', 'CNY', 'KRW',
-  'SGD', 'HKD', 'MYR', 'IDR', 'PHP', 'THB', 'VND',
-]
 
 interface DraftService extends Omit<ServiceItem, 'price' | 'marketPrice'> {
   price: string
@@ -22,23 +17,6 @@ interface DraftService extends Omit<ServiceItem, 'price' | 'marketPrice'> {
 }
 interface Draft extends Omit<PageInput, 'services'> {
   services: DraftService[]
-}
-
-function loadDefaults(): Partial<PageInput> {
-  try {
-    return JSON.parse(localStorage.getItem(DEFAULTS_KEY) || '{}') as Partial<PageInput>
-  } catch {
-    return {}
-  }
-}
-
-function saveDefaults(input: PageInput) {
-  try {
-    const { currency, preparedBy, contact, ctaText, notes } = input
-    localStorage.setItem(DEFAULTS_KEY, JSON.stringify({ currency, preparedBy, contact, ctaText, notes }))
-  } catch {
-    /* optional */
-  }
 }
 
 const moneyString = (n: number) => (n ? String(n) : '')
@@ -112,7 +90,7 @@ export default function Editor() {
   useEffect(() => {
     if (!id) return
     let alive = true
-    db.getPage(id)
+    db.pages.get(id)
       .then((page) => {
         if (!alive) return
         if (!page) setLoadError('This page does not exist or has been deleted.')
@@ -131,7 +109,7 @@ export default function Editor() {
   useEffect(() => {
     if (id) return
     let alive = true
-    db.listPages()
+    db.pages.list()
       .then((pages) => {
         if (!alive) return
         setDraft((d) => (d && !d.reference ? { ...d, reference: makeReference(pages.length + 1) } : d))
@@ -206,8 +184,14 @@ export default function Editor() {
     setSaving(true)
     setError('')
     try {
-      const saved = isEdit && id ? await db.updatePage(id, input, loaded?.createdAt ?? '') : await db.createPage(input)
-      saveDefaults(input)
+      const saved = isEdit && id ? await db.pages.update(id, input, loaded?.createdAt ?? '') : await db.pages.create(input)
+      saveDefaults({
+        currency: input.currency,
+        preparedBy: input.preparedBy,
+        contact: input.contact,
+        ctaText: input.ctaText,
+        notes: input.notes,
+      })
       dirty.current = false
       navigate(`/p/${saved.id}`)
     } catch (e) {

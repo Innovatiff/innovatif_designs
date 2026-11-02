@@ -25,7 +25,7 @@ export default function PageView() {
     let alive = true
     setPage(null)
     setError('')
-    db.getPage(id)
+    db.pages.get(id)
       .then((p) => {
         if (!alive) return
         if (!p) setError('This page does not exist or has been deleted.')
@@ -105,7 +105,7 @@ export default function PageView() {
 
   const duplicate = async () => {
     try {
-      const copy = await db.duplicatePage(id)
+      const copy = await db.pages.duplicate(id)
       navigate(`/p/${copy.id}/edit`)
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Could not duplicate the page.')
@@ -116,7 +116,7 @@ export default function PageView() {
     if (!page) return
     if (!window.confirm(`Delete “${page.title}”? This cannot be undone.`)) return
     try {
-      await db.deletePage(id)
+      await db.pages.remove(id)
       navigate('/')
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Could not delete the page.')

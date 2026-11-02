@@ -4,10 +4,14 @@ interface Props {
   label: ReactNode
   children: ReactNode
   className?: string
+  /** Classes for the toggle button (defaults to a plain button). */
+  buttonClassName?: string
+  /** Accessible name when the label is only an icon. */
+  ariaLabel?: string
 }
 
 /** Small dropdown for secondary actions. Closes on outside click or Escape. */
-export function Menu({ label, children, className }: Props) {
+export function Menu({ label, children, className, buttonClassName = 'btn', ariaLabel }: Props) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -29,7 +33,14 @@ export function Menu({ label, children, className }: Props) {
 
   return (
     <div className={`menu${className ? ` ${className}` : ''}`} ref={ref}>
-      <button type="button" className="btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button
+        type="button"
+        className={buttonClassName}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((o) => !o)}
+      >
         {label}
       </button>
       {open && (

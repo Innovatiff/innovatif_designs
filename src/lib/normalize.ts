@@ -1,4 +1,14 @@
-import { ILLUSTRATION_KEYS, type IllustrationKey, type Page, type PageInput, type ServiceItem } from '../types'
+import {
+  ILLUSTRATION_KEYS,
+  type Checkout,
+  type CheckoutInput,
+  type CheckoutItem,
+  type IllustrationKey,
+  type Page,
+  type PageInput,
+  type ServiceItem,
+} from '../types'
+import { SHIPPING_COUNTRIES, parseCountryList } from './countries'
 import { plusDays } from './format'
 
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -148,5 +158,125 @@ export function seedPage(): PageInput {
     preparedBy: 'Innovatif Designs',
     contact: 'hello@innovatifdesigns.com · +1 (555) 010-2030',
     ctaText: 'Ready to get started?',
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Checkouts
+// ---------------------------------------------------------------------------
+
+/** Whole quantity between 1 and 999. */
+export function toQuantity(value: unknown): number {
+  const n = typeof value === 'number' ? value : parseInt(String(value ?? '').replace(/[^\d]/g, ''), 10)
+  if (!Number.isFinite(n) || n < 1) return 1
+  return Math.min(999, Math.floor(n))
+}
+
+/** Percentage between 0 and 100, up to three decimals ("8.25", "8,25 %"). */
+export function toRate(value: unknown): number {
+  const n = typeof value === 'number' ? value : parseFloat(String(value ?? '').replace(',', '.').replace(/[^\d.]/g, ''))
+  if (!Number.isFinite(n) || n <= 0) return 0
+  return Math.min(100, Math.round(n * 1000) / 1000)
+}
+
+export function isEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+function rowId(value: unknown): string {
+  const id = String(value ?? '')
+  return /^[A-Za-z0-9_-]{1,40}$/.test(id) ? id : newId()
+}
+
+export function normalizeCheckoutItem(input: unknown): CheckoutItem {
+  const s = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>
+  return {
+    id: rowId(s.id),
+    name: text(s.name, 200).trim(),
+    description: text(s.description, 3000),
+    illustration: illustration(s.illustration ?? 'product'),
+    image: isImageRef(s.image) ? s.image : null,
+    quantity: toQuantity(s.quantity),
+    price: toMoney(s.price),
+    listPrice: toMoney(s.listPrice),
+  }
+}
+
+export function normalizeCheckoutInput(input: unknown): CheckoutInput {
+  const p = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>
+  const email = text(p.clientEmail, 200).trim()
+  return {
+    title: text(p.title, 200).trim(),
+    client: text(p.client, 200).trim(),
+    clientEmail: isEmail(email) ? email : '',
+    reference: text(p.reference, 60).trim(),
+    currency: text(p.currency, 8).trim().toUpperCase() || 'USD',
+    items: (Array.isArray(p.items) ? p.items : []).slice(0, 50).map(normalizeCheckoutItem),
+    shipping: toMoney(p.shipping),
+    taxRate: toRate(p.taxRate),
+    collectShipping: p.collectShipping === true,
+    shipCountries: parseCountryList(p.shipCountries).filter((c) => SHIPPING_COUNTRIES.has(c)),
+    notes: text(p.notes, 5000),
+    preparedBy: text(p.preparedBy, 200).trim(),
+    contact: text(p.contact, 400).trim(),
+  }
+}
+
+export function normalizeCheckout(input: unknown, meta: { id: string; createdAt: string; updatedAt: string }): Checkout {
+  return { ...normalizeCheckoutInput(input), ...meta }
+}
+
+export function isItemEmpty(item: CheckoutItem): boolean {
+  return !item.name.trim() && !item.description.trim() && !item.price && !item.listPrice && !item.image
+}
+
+/** An example checkout that shows what a finished one looks like. */
+export function seedCheckout(): CheckoutInput {
+  return {
+    title: 'Brand launch kit',
+    client: 'Aurora Coffee Co.',
+    clientEmail: '',
+    reference: makeReference(2),
+    currency: 'USD',
+    items: [
+      {
+        id: newId(),
+        name: 'Logo design package',
+        description:
+          'A complete logo system ready for print, signage and social media.\n- Primary logo, monogram and wordmark\n- Files for print and screen\n- Two rounds of revisions',
+        illustration: 'branding',
+        image: null,
+        quantity: 1,
+        price: 650,
+        listPrice: 900,
+      },
+      {
+        id: newId(),
+        name: 'Premium business cards (box of 250)',
+        description: 'Double-sided, 400gsm matte card with a soft-touch finish. Printed and delivered to your door.',
+        illustration: 'print',
+        image: null,
+        quantity: 2,
+        price: 89,
+        listPrice: 129,
+      },
+      {
+        id: newId(),
+        name: 'Social media template pack',
+        description: '30 editable post and story templates in your brand colours and fonts.',
+        illustration: 'social',
+        image: null,
+        quantity: 1,
+        price: 180,
+        listPrice: 250,
+      },
+    ],
+    shipping: 15,
+    taxRate: 8,
+    collectShipping: true,
+    shipCountries: ['US', 'CA'],
+    notes: 'Digital files are delivered within 7 business days. Printed cards ship within 10 business days of artwork approval.',
+    preparedBy: 'Innovatif Designs',
+    contact: 'hello@innovatifdesigns.com · +1 (555) 010-2030',
   }
 }

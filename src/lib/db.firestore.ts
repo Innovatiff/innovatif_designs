@@ -1,28 +1,13 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  type DocumentData,
-} from 'firebase/firestore'
-import type { Page } from '../types'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, setDoc } from 'firebase/firestore'
 import type { Backend } from './db'
 import { firestore } from './firebase'
-import { normalizeInput, normalizePage } from './normalize'
-
-const nowISO = () => new Date().toISOString()
 
 function friendly(error: unknown): Error {
   const code = (error as { code?: string })?.code ?? ''
   const message = error instanceof Error ? error.message : String(error)
   if (code === 'permission-denied') {
     return new Error(
-      'Firestore denied this request. Make sure you are signed in and that the rules from firestore.rules are published in the Firebase console.',
+      'Firestore denied this request. Make sure you are signed in and that the latest rules from firestore.rules are published in the Firebase console.',
     )
   }
   if (code === 'unavailable') return new Error('Cannot reach Firestore. Check your internet connection and try again.')
@@ -41,52 +26,30 @@ async function run<T>(work: () => Promise<T>): Promise<T> {
   }
 }
 
-function toPage(id: string, data: DocumentData): Page {
-  const createdAt = typeof data.createdAt === 'string' ? data.createdAt : ''
-  const updatedAt = typeof data.updatedAt === 'string' ? data.updatedAt : createdAt
-  return normalizePage(data, { id, createdAt, updatedAt })
-}
-
-const pages = () => collection(firestore, 'pages')
-const images = () => collection(firestore, 'images')
-
 export const firestoreBackend: Backend = {
   name: 'firestore',
 
-  listPages: () =>
+  list: (name) =>
     run(async () => {
-      const snapshot = await getDocs(query(pages(), orderBy('updatedAt', 'desc')))
-      return snapshot.docs.map((d) => toPage(d.id, d.data()))
+      const snapshot = await getDocs(query(collection(firestore, name), orderBy('updatedAt', 'desc')))
+      return snapshot.docs.map((d) => ({ id: d.id, data: d.data() }))
     }),
 
-  getPage: (id) =>
+  get: (name, id) =>
     run(async () => {
-      const snapshot = await getDoc(doc(firestore, 'pages', id))
-      return snapshot.exists() ? toPage(snapshot.id, snapshot.data()) : null
+      const snapshot = await getDoc(doc(firestore, name, id))
+      return snapshot.exists() ? { id: snapshot.id, data: snapshot.data() } : null
     }),
 
-  createPage: (input) =>
-    run(async () => {
-      const now = nowISO()
-      const data = normalizeInput(input)
-      const ref = await addDoc(pages(), { ...data, createdAt: now, updatedAt: now })
-      return { ...data, id: ref.id, createdAt: now, updatedAt: now }
-    }),
+  create: (name, data) => run(async () => (await addDoc(collection(firestore, name), data)).id),
 
-  updatePage: (id, input, createdAt) =>
-    run(async () => {
-      const now = nowISO()
-      const data = normalizeInput(input)
-      const created = createdAt || now
-      await setDoc(doc(firestore, 'pages', id), { ...data, createdAt: created, updatedAt: now })
-      return { ...data, id, createdAt: created, updatedAt: now }
-    }),
+  set: (name, id, data) => run(() => setDoc(doc(firestore, name, id), data)),
 
-  deletePage: (id) => run(() => deleteDoc(doc(firestore, 'pages', id))),
+  remove: (name, id) => run(() => deleteDoc(doc(firestore, name, id))),
 
   uploadImage: (dataUrl) =>
     run(async () => {
-      const ref = await addDoc(images(), { dataUrl, createdAt: nowISO() })
+      const ref = await addDoc(collection(firestore, 'images'), { dataUrl, createdAt: new Date().toISOString() })
       return `img:${ref.id}`
     }),
 

@@ -2,6 +2,8 @@ import { useEffect, type ReactNode } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/auth'
 import { Login } from './components/Login'
+import CheckoutEditor from './pages/CheckoutEditor'
+import CheckoutView from './pages/CheckoutView'
 import Editor from './pages/Editor'
 import Home from './pages/Home'
 import PageView from './pages/PageView'
@@ -46,7 +48,24 @@ export default function App() {
             </Gate>
           }
         />
+        <Route
+          path="/new/checkout"
+          element={
+            <Gate>
+              <CheckoutEditor />
+            </Gate>
+          }
+        />
         <Route path="/p/:id" element={<PageView />} />
+        <Route path="/c/:id" element={<CheckoutView />} />
+        <Route
+          path="/c/:id/edit"
+          element={
+            <Gate>
+              <CheckoutEditor />
+            </Gate>
+          }
+        />
         <Route
           path="/p/:id/edit"
           element={

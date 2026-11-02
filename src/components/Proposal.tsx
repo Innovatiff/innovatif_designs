@@ -107,7 +107,7 @@ export function Proposal({ page, preview = false }: Props) {
       <header className="p-hero">
         <div className="p-hero-inner">
           <div className="p-topline">
-            <Wordmark to={null} tone="light" label={page.preparedBy || undefined} />
+            <Wordmark to={null} tone="light" size="lg" label={page.preparedBy || undefined} />
             <span className="p-topline-ref">Proposal{page.reference ? ` · ${page.reference}` : ''}</span>
           </div>
           <div className="p-hero-grid">

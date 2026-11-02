@@ -5,8 +5,9 @@ rules_version = '2';
 // Publish these from the Firebase console (Firestore Database → Rules → paste → Publish)
 // or with the Firebase CLI: `firebase deploy --only firestore:rules`.
 //
-// Anyone who has a page link can open that page (so you can send it to clients).
-// Only a signed-in user (you) can see the list of pages, create, edit or delete them.
+// Anyone who has a page or checkout link can open it (so you can send it to clients).
+// Only a signed-in user (you) can see the list, create, edit or delete them.
+// The payment functions on Netlify read checkouts and images through the same public "get" rule.
 // Sign-ups are not possible from the app; disable them in
 // Authentication → Settings → User actions as well, so only the users you create can sign in.
 service cloud.firestore {
@@ -22,6 +23,15 @@ service cloud.firestore {
       allow create, update: if signedIn()
         && request.resource.data.title is string
         && request.resource.data.services is list;
+      allow delete: if signedIn();
+    }
+
+    match /checkouts/{checkoutId} {
+      allow get: if true;
+      allow list: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.title is string
+        && request.resource.data.items is list;
       allow delete: if signedIn();
     }
 

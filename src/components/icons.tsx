@@ -114,3 +114,53 @@ export const LogoutIcon = (p: IconProps) => (
     <path d="M13 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8" />
   </Icon>
 )
+export const LockIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+    <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+  </Icon>
+)
+export const CardIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+    <path d="M2.5 10h19M6.5 15h4" />
+  </Icon>
+)
+export const TruckIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M2.5 6.5h11v10h-11z" />
+    <path d="M13.5 10h4l3 3.2v3.3h-7" />
+    <circle cx="7" cy="17.5" r="1.8" />
+    <circle cx="17" cy="17.5" r="1.8" />
+  </Icon>
+)
+export const CheckCircleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M7.5 12.5l3 3 6-6.5" />
+  </Icon>
+)
+export const ClockIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M12 7v5l3.5 2" />
+  </Icon>
+)
+export const MinusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 12h14" />
+  </Icon>
+)
+export const CartIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 4h2.2l2.3 11.2a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.1" />
+    <circle cx="9.5" cy="20" r="1.3" />
+    <circle cx="17" cy="20" r="1.3" />
+  </Icon>
+)
+export const TagIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 12.2V4.5A1.5 1.5 0 0 1 4.5 3h7.7l8.3 8.3a1.5 1.5 0 0 1 0 2.1l-7.1 7.1a1.5 1.5 0 0 1-2.1 0Z" />
+    <circle cx="8" cy="8" r="1.5" />
+  </Icon>
+)

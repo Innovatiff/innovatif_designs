@@ -1,16 +1,22 @@
-export function formatMoney(amount: number, currency: string): string {
+/**
+ * Whole amounts print without decimals ("$1,650"). Anything with cents, or `exact`, uses the
+ * currency's own decimals ("$19.99", "KWD 1.250", "¥1,000").
+ */
+export function formatMoney(amount: number, currency: string, exact = false): string {
   const code = (currency || 'USD').toUpperCase()
-  const digits = Math.abs(amount % 1) < 0.005 ? 0 : 2
+  const whole = Math.abs(amount - Math.round(amount)) < 0.0005
+  const options: Intl.NumberFormatOptions =
+    whole && !exact ? { minimumFractionDigits: 0, maximumFractionDigits: 0 } : {}
   try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: code,
-      minimumFractionDigits: digits,
-      maximumFractionDigits: digits,
-    }).format(amount)
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: code, ...options }).format(amount)
   } catch {
+    const digits = whole && !exact ? 0 : 2
     return `${code} ${amount.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`
   }
+}
+
+export function hasCents(amount: number): boolean {
+  return Math.abs(amount - Math.round(amount)) >= 0.0005
 }
 
 export interface Totals {
